@@ -58,9 +58,9 @@ class MecabNode < FFI::Struct
   private
 
   def fill_up(analysis)
-    if !analysis[:yomi] && analysis[:surface].match(/\p{katakana}+/)
-      analysis[:yomi] = analysis[:surface]
-      analysis[:pronunciation] = analysis[:surface]
+    if !analysis[:yomi] && surface.match(/\p{katakana}+/)
+      analysis[:yomi] = surface
+      analysis[:pronunciation] = surface
     end
     analysis
   end

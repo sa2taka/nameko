@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["sa2taka@gmail.com"]
 
   spec.summary       = %q{Ruby binding for Mecab.}
-  spec.description   = %q{Ruby binding for Mecab, Part-of-Speech and Morphological Analyzer."}
+  spec.description   = %q{Ruby binding for Mecab, Part-of-Speech and Morphological Analyzer.}
   spec.homepage      = "https://github.com/sa2taka/nameko"
   spec.license       = "MIT"
 

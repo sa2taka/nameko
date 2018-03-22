@@ -1,20 +1,20 @@
-require "ffi"
+require 'ffi'
+require 'nameko/node.rb'
 
 module Nameko
   #  This class is providing a parse method.
-  #   require 'nameko'
+  #    require 'nameko'
   #
-  #   mecab = Nameko::Mecab.new
-  #   mecab.parse("私以外私じゃないの。")
-  #
+  #    mecab = Nameko::Mecab.new
+  #    mecab.parse("私以外私じゃないの")
+  #   # =>
   #   [
-  #     {:surface=>'私', :pos=>'名詞', :pos1=>'代名詞', :pos2=>'一般', :pos3=>'', :conjugation_form=>'', :conjugation=>'', :base=>'私', :yomi=>'ワタシ', :pronunciation=>'ワタシ'},
-  #     {:surface=>'以外', :pos=>'名詞', :pos1=>'非自立', :pos2=>'副詞可能', :pos3=>'', :conjugation_form=>'', :conjugation=>'', :base=>'以外', :yomi=>'イガイ', :pronunciation=>'イガイ'},
-  #     {:surface=>'私', :pos=>'名詞', :pos1=>'代名詞', :pos2=>'一般', :pos3=>'', :conjugation_form=>'', :conjugation=>'', :base=>'私', :yomi=>'ワタシ', :pronunciation=>'ワタシ'},
-  #     {:surface=>'じゃ', :pos=>'助詞', :pos1=>'副助詞', :pos2=>'', :pos3=>'', :conjugation_form=>'', :conjugation=>'', :base=>'じゃ', :yomi=>'ジャ', :pronunciation=>'ジャ'},
-  #     {:surface=>'ない', :pos=>'助動詞', :pos1=>'', :pos2=>'', :pos3=>'', :conjugation_form=>'特殊・ナイ', :conjugation=>'基本形', :base=>'ない', :yomi=>'ナイ', :pronunciation=>'ナイ'},
-  #     {:surface=>'の', :pos=>'助詞', :pos1=>'終助詞', :pos2=>'', :pos3=>'', :conjugation_form=>'', :conjugation=>'', :base=>'の', :yomi=>'ノ', :pronunciation=>'ノ'},
-  #     {:surface=>'。',:pos=>'記号', :pos1=>'句点', :pos2=>'', :pos3=>'', :conjugation_form=>'', :conjugation=>'', :base=>'。', :yomi=>'。', :pronunciation=>'。'},
+  #     #<MecabNode:0x00007f8f51117348>,
+  #     #<MecabNode:0x00007f8f51116d30>,
+  #     #<MecabNode:0x00007f8f51115610>,
+  #     #<MecabNode:0x00007f8f51115138>,
+  #     #<MecabNode:0x00007f8f51123fa8>,
+  #     #<MecabNode:0x00007f8f51123be8>
   #   ]
   #
 
@@ -24,7 +24,7 @@ module Nameko
 
     attach_function :mecab_new2, [:string], :pointer
     attach_function :mecab_destroy, [:pointer], :void
-    attach_function :mecab_sparse_tostr, [:pointer, :string], :string
+    attach_function :mecab_sparse_tonode, [:pointer, :string], :pointer
 
     def self.destroy(mecab)
       proc {
@@ -51,26 +51,31 @@ module Nameko
 
     # Parse the given string by MeCab.
     # @param [String] str Parsed text
-    # @return [Array<Hash>] Result of Mecab parsing
+    # @return [Array<MecabNode>] Result of Mecab parsing
     #
-    # The return value is array of hash.
+    # @example
+    #   node = mecab.parse("私以外私じゃないの")[0]
     #
-    # The hash keys meaning is as follows(The key is symbol):
-    #   surface: 表層系(Surface)
-    #   pos: 品詞(Part of speech)
-    #   pos1: 品詞細分類1(Part of speech subcategory1)
-    #   pos2: 品詞細分類2(Part of speech subcategory2)
-    #   pos3: 品詞細分類3(Part of speech subcategory3)
-    #   conjugation_form: 活用形(Conjugation form)
-    #   conjugation: 活用形(conjucation)
-    #   base: 基本形・原型(Lexical form)
-    #   yomi: 読み(Reading)
-    #   pronunciation: 発音(Pronunciation)
+    #   node.surface # => "私"
+    #   node.feature #=> {:pos=>"名詞", :pos1=>"代名詞", :pos2=>"一般", :pos3=>"", :conjugation_form=>"", :conjugation=>"", :base=>"私", :yomi=>"ワタシ", :pronunciation=>"ワタシ"}
+    #   node.posid #=> 59
+    #   node.id #=> 1
+    #
 
     def parse(str)
-      mecab_row = mecab_sparse_tostr(@mecab, str).force_encoding(Encoding.default_external)
-      analysis_result = analyze(mecab_row)
-      fill_up(analysis_result)
+      node = MecabNode.new mecab_sparse_tonode(@mecab, str)
+      result = []
+
+      while !node.null? do
+        if node.surface.empty?
+          node = node.next
+          next
+        end
+        result << node
+        node = node.next
+      end
+
+      result
     end
 
     private
@@ -95,7 +100,7 @@ module Nameko
             )?
           )?
           /x) do |md|
-            md.named_captures.map{|k,v| [k.to_sym, v] }.to_h
+          md.named_captures.map{ |k, v| [k.to_sym, v] }.to_h
         end
       end
     end

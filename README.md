@@ -26,22 +26,30 @@ Or install it yourself as:
 require 'nameko'
 
 mecab = Nameko::Mecab.new
-mecab.parse("私以外私じゃないの。")
+mecab.parse("私以外私じゃないの")
 # =>
-[
-  {:surface=>'私', :pos=>'名詞', :pos1=>'代名詞', :pos2=>'一般', :pos3=>'', :conjugation_form=>'', :conjugation=>'', :base=>'私', :yomi=>'ワタシ', :pronunciation=>'ワタシ'},
-  {:surface=>'以外', :pos=>'名詞', :pos1=>'非自立', :pos2=>'副詞可能', :pos3=>'', :conjugation_form=>'', :conjugation=>'', :base=>'以外', :yomi=>'イガイ', :pronunciation=>'イガイ'},
-  {:surface=>'私', :pos=>'名詞', :pos1=>'代名詞', :pos2=>'一般', :pos3=>'', :conjugation_form=>'', :conjugation=>'', :base=>'私', :yomi=>'ワタシ', :pronunciation=>'ワタシ'},
-  {:surface=>'じゃ', :pos=>'助詞', :pos1=>'副助詞', :pos2=>'', :pos3=>'', :conjugation_form=>'', :conjugation=>'', :base=>'じゃ', :yomi=>'ジャ', :pronunciation=>'ジャ'},
-  {:surface=>'ない', :pos=>'助動詞', :pos1=>'', :pos2=>'', :pos3=>'', :conjugation_form=>'特殊・ナイ', :conjugation=>'基本形', :base=>'ない', :yomi=>'ナイ', :pronunciation=>'ナイ'},
-  {:surface=>'の', :pos=>'助詞', :pos1=>'終助詞', :pos2=>'', :pos3=>'', :conjugation_form=>'', :conjugation=>'', :base=>'の', :yomi=>'ノ', :pronunciation=>'ノ'},
-  {:surface=>'。',:pos=>'記号', :pos1=>'句点', :pos2=>'', :pos3=>'', :conjugation_form=>'', :conjugation=>'', :base=>'。', :yomi=>'。', :pronunciation=>'。'},
-]
+#   [
+#     #<MecabNode:0x00007f8f51117348>,
+#     #<MecabNode:0x00007f8f51116d30>,
+#     #<MecabNode:0x00007f8f51115610>,
+#     #<MecabNode:0x00007f8f51115138>,
+#     #<MecabNode:0x00007f8f51123fa8>,
+#     #<MecabNode:0x00007f8f51123be8>
+#   ]
+
+node = mecab.parse("私以外私じゃないの")[0]
+node.surface # => "私"
+node.feature #=> {:pos=>"名詞", :pos1=>"代名詞", :pos2=>"一般", :pos3=>"", :conjugation_form=>"", :conjugation=>"", :base=>"私", :yomi=>"ワタシ", :pronunciation=>"ワタシ"}
+node.posid #=> 59
+node.id #=> 1
 ```
 
-Nameko::Mecab#parse returns a array of hash.  
+Nameko::Mecab#parse returns a array of `MecabNode`.
+
+The MecabNode has `feature` method.
+It return hash.
 The hash keys meaning is as follows(The key is symbol):
-+ `surface`: 表層系(Surface)
+
 + `pos`: 品詞(Part of speech)
 + `pos1`: 品詞細分類1(Part of speech subcategory1)
 + `pos2`: 品詞細分類2(Part of speech subcategory2)
@@ -63,13 +71,13 @@ mecab = Nameko::Mecab.new("-d /usr/local/lib/mecab/dic/mecab-ipadic-neologd")
 # mecab = Nameko::Mecab.new(["-d /usr/local/lib/mecab/dic/mecab-ipadic-neologd"])
 # mecab = Nameko::Mecab.new(["-d", "/usr/local/lib/mecab/dic/mecab-ipadic-neologd"])
 
-mecab.parse("アラレちゃん")
-# => [{:surface=>"アラレちゃん", :pos=>"名詞", :pos1=>"固有名詞", :pos2=>"一般", :pos3=>"", :conjugation_form=>"", :conjugation=>"", :base=>"アラレちゃん", :yomi=>"アラレチャン", :pronunciation=>"アラレチャン"}]
+mecab.parse("アラレちゃん").map(&:feature)
+# => [{:pos=>"名詞", :pos1=>"固有名詞", :pos2=>"一般", :pos3=>"", :conjugation_form=>"", :conjugation=>"", :base=>"アラレちゃん", :yomi=>"アラレチャン", :pronunciation=>"アラレチャン"}]
 ```
 
 ## Nameko VS. Natto
 
-The key difference between Natto and Nameko is the return value of parse method.
+The key difference between Natto and Nameko is the return value of feature method.
 
 ```ruby:Natto
 require 'natto'
@@ -90,12 +98,12 @@ require 'nameko'
 
 mecab = Nameko::Mecab.new
 
-mecab.parse("私とあなた")
+mecab.parse("私とあなた").map(&:feature)
 # =>
 [
-  {:surface=>"私", :pos=>"名詞", :pos1=>"代名詞", :pos2=>"一般", :pos3=>"", :conjugation_form=>"", :conjugation=>"", :base=>"私", :yomi=>"ワタシ", :pronunciation=>"ワタシ"},
-  {:surface=>"と", :pos=>"助詞", :pos1=>"格助詞", :pos2=>"一般", :pos3=>"", :conjugation_form=>"", :conjugation=>"", :base=>"と", :yomi=>"ト", :pronunciation=>"ト"},
-  {:surface=>"あなた", :pos=>"名詞", :pos1=>"代名詞", :pos2=>"一般", :pos3=>"", :conjugation_form=>"", :conjugation=>"", :base=>"あなた", :yomi=>"アナタ", :pronunciation=>"アナタ"}
+  {:pos=>"名詞", :pos1=>"代名詞", :pos2=>"一般", :pos3=>"", :conjugation_form=>"", :conjugation=>"", :base=>"私", :yomi=>"ワタシ", :pronunciation=>"ワタシ"},
+  {:pos=>"助詞", :pos1=>"格助詞", :pos2=>"一般", :pos3=>"", :conjugation_form=>"", :conjugation=>"", :base=>"と", :yomi=>"ト", :pronunciation=>"ト"},
+  {:pos=>"名詞", :pos1=>"代名詞", :pos2=>"一般", :pos3=>"", :conjugation_form=>"", :conjugation=>"", :base=>"あなた", :yomi=>"アナタ", :pronunciation=>"アナタ"}
 ]
 ```
 

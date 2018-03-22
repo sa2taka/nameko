@@ -44,11 +44,10 @@ node.posid #=> 59
 node.id #=> 1
 ```
 
-Nameko::Mecab#parse returns a array of `MecabNode`.
+Nameko::Mecab#parse returns an array of `MecabNode`.
 
-The MecabNode has `feature` method.
-It return hash.
-The hash keys meaning is as follows(The key is symbol):
+The MecabNode has `feature` method that return hash.
+The hash's keys meaning is as follows(The key is symbol):
 
 + `pos`: 品詞(Part of speech)
 + `pos1`: 品詞細分類1(Part of speech subcategory1)
